@@ -33,7 +33,18 @@ const getimgprueba = async () => {
     }
 }
 
+const tag = `nature`
+const buscadorFotos = async (tag) => {
+    try {
+        const datos = await connect(`${urlApi}search?query=${tag}`)
+        const fotos = datos.photos
+        console.log(fotos)
+    } catch (error) {
+    }
+}
+
 
 /*INVOCACIONES*/
 getimgprueba();
+buscadorFotos();
 
