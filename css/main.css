@@ -68,7 +68,12 @@ main section select{
 }
 
 .contenedor-imagenes figure {
+    padding: 1rem;
     text-align: center;
+    border: 2px solid #f7589d;
+    border-radius: 10px;
+    background: #EEAECA;
+    background: radial-gradient(circle,rgba(238, 174, 202, 1) 0%, rgba(148, 187, 233, 1) 100%);
 }
 
 .contenedor-imagenes figure img {
@@ -84,10 +89,29 @@ main section select{
     font-size: 1.4rem;
 }
 
-.contenedor-imagenes figure .btnFavorito {
+.contenedor-imagenes figure .btnFavorito, .basurilla {
+    margin: 5px;
     margin-top: 10px;
     font-size: 1.4rem;
     padding: 5px;
+    background: #3F5EFB;
+    background: radial-gradient(circle, rgba(63, 94, 251, 1) 0%, rgba(252, 70, 107, 1) 100%);
+    border-radius: 7.5px;
+}
+.Paginacion{
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem; 
+    margin-block: 2rem;
+}
+
+.boton_paginacion{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 0.375rem;
 }
 
 .pie-de-pagina{
