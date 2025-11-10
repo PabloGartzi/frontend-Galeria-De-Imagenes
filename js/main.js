@@ -2,6 +2,7 @@
 const botonBuscar = document.querySelector('#buscarBtn');
 const palabraBuscador = document.querySelector('#buscador');
 const contenedor_imagenes = document.querySelector('.contenedor-imagenes');
+const contenedor_imagenes_fav = document.querySelector('.contenedor-imagenes-favoritos');
 
 const client = 'RQWQAsp0OfX6ei1TGzj7LPE2NronT34Begtc9VizPvO1kY3v9C7IUD2d';
 const urlApi = `https://api.pexels.com/v1/`
@@ -105,6 +106,9 @@ const eliminarFavorito = (foto) => {
     //TODO
 }
 
+const pintarImagenesFavotiro = () =>{
+
+}
 
 
 const eliminarElementosDOM = (elemento) => {
