@@ -15,11 +15,19 @@ const fragment = document.createDocumentFragment();
 /* EVENTOS*/
 
 document.addEventListener('click', async (ev) => {
+    if (paginaActual.includes("favoritos.html")) {
+        if (ev.target.matches('.imagen')) {
+            let params = `scrollbars=no,resizable=no,status=no,location=no,toolbar=no,menubar=no,
+            width=600,height=300,left=100,top=100`;
+            window.open(ev.target.src, "test", params);
+        }
+        
+    }
     if (ev.target.matches('#buscarBtn')){
         const palabra = palabraBuscador.value.trim(); //usar para eliminar espacios en blanco al inicio y al final del string
         const listaFotos = await buscadorFotosPalabra(palabra, 1);
         pintarImagenesBuscar(listaFotos);
-        funcionPaginacion(palabra, 1);
+        await funcionPaginacion(palabra, 1);
     }
     if (ev.target.matches('.btnFavorito')) {
         const foto = JSON.parse(ev.target.dataset.foto);
@@ -43,16 +51,18 @@ document.addEventListener('click', async (ev) => {
         const tag = ev.target.id;
         const listaFotos = await buscadorFotosPalabra(tag, 1);
         pintarImagenesBuscar(listaFotos);
-        funcionPaginacion(tag, 1);
+        await funcionPaginacion(tag, 1);
     }
     if (ev.target.matches('.boton_paginacion')){
-        const accion = ev.target.id;
+        const accion = ev.target.dataset.accion;
         numPagMax = await cantidadFotos(ev.target.dataset.tag);
+        const tag = ev.target.dataset.tag;
+        const pagina = parseInt(ev.target.dataset.pagina);
         if(accion == "avanzar"){
-            if(parseInt(ev.target.dataset.pagina) < numPagMax){
-                const listaFotos = await buscadorFotosPalabra(ev.target.dataset.tag, parseInt(ev.target.dataset.pagina)+1);
+            if(pagina < numPagMax){
+                const listaFotos = await buscadorFotosPalabra(tag, pagina+1);
                 pintarImagenesBuscar(listaFotos);
-                funcionPaginacion(ev.target.dataset.tag, parseInt(ev.target.dataset.pagina)+1);
+                await funcionPaginacion(tag, pagina+1);
             }
             else{
                 console.log("No puedes avanzar más")
@@ -60,15 +70,22 @@ document.addEventListener('click', async (ev) => {
             
         }
         else if(accion == "retroceder"){
-            if(parseInt(ev.target.dataset.pagina) > 1){
-                const listaFotos = await buscadorFotosPalabra(ev.target.dataset.tag, parseInt(ev.target.dataset.pagina)-1);
+            if(pagina > 1){
+                const listaFotos = await buscadorFotosPalabra(tag, pagina-1);
                 pintarImagenesBuscar(listaFotos);
-                funcionPaginacion(ev.target.dataset.tag, parseInt(ev.target.dataset.pagina)-1);
+                await funcionPaginacion(tag, pagina-1);
             }
             else{
                 console.log("No puedes retroceder más")
             }
         }
+        else if (accion == "page") {
+            if (pagina >= 1 && pagina <= numPagMax) {
+                const listaFotos = await buscadorFotosPalabra(tag, pagina);
+                pintarImagenesBuscar(listaFotos);
+                await funcionPaginacion(tag, pagina);
+            }
+        }        
         else{
             console.log("ALGO ESTÁ MAL HECHO.")
         }
@@ -97,15 +114,6 @@ const connect = async (urlAp) => {
     }
 }
 
-// const getimgprueba = async () => {
-//     try {
-//         const datos = await connect(`${urlApi}photos/2014422`)
-//         console.log(datos.src.original);
-//     } catch (error) {
-//         console.log(error);
-//     }
-// }
-
 //cambiar para que el query cambie por un parametro dependiendo de la funcion
 const buscadorFotosPalabra = async (tag, numPag) => {
     try {
@@ -121,7 +129,7 @@ const buscadorFotosPalabra = async (tag, numPag) => {
 const cantidadFotos = async (tag) => {
     try {
         const datos = await connect(`${urlApi}search?query=${tag}&page=1&per_page=9`)
-        return datos.total_results/datos.per_page;
+        return Math.ceil(datos.total_results/datos.per_page);
     } catch (error) {
     }
 }
@@ -139,6 +147,8 @@ const pintarImagenesBuscar = (listaFotos) => {
         const newImg = document.createElement("IMG");
         newImg.src = element.src.original;
         newImg.alt = element.alt;
+        newImg.id = element.id;
+        newImg.classList.add("imagen")
 
         const newFigcaption = document.createElement("FIGCAPTION");
         newFigcaption.textContent = "Autor: "+element.photographer+". Descripción: "+element.alt;
@@ -234,31 +244,53 @@ const pintarTagsInicio = (listaFotos, listaTags) =>{
     contenedor_imagenes.append(fragment);
 }
 
-const funcionPaginacion = (tag, numPag) => {
+const funcionPaginacion = async (tag, numPag) => {
     eliminarElementosDOM(paginacion);
-
-    const botonAvanzar = document.createElement("BUTTON");
-    botonAvanzar.textContent = "🡺"
-    botonAvanzar.id = "avanzar";
-    botonAvanzar.classList = "boton_paginacion";
-    botonAvanzar.dataset.pagina = numPag;
-    botonAvanzar.dataset.tag = tag;
-
+    
+    const cantidadPaginas = await cantidadFotos(tag);
+    //const numeroUltimaPagina = Math.max(1, cantidadPaginas);
+    
+    const indiceBloquePaginas = Math.floor((numPag - 1) / 10);
+    const pagInicio = indiceBloquePaginas * 10 + 1;
+    const pagFinal = Math.min(pagInicio + 9, cantidadPaginas);
 
     const botonRetroceder = document.createElement("BUTTON");
     botonRetroceder.textContent = "🡸"
-    botonRetroceder.id = "retroceder";
-    botonRetroceder.classList = "boton_paginacion";
+    botonRetroceder.classList.add("boton_paginacion");
+    botonRetroceder.dataset.accion = "retroceder";
     botonRetroceder.dataset.pagina = numPag;
     botonRetroceder.dataset.tag = tag;
+    if (numPag == 1) botonRetroceder.disabled = true;// controlar numero de pagina
+    fragment.append(botonRetroceder);
+    
+    
+    for (let i = pagInicio; i <= pagFinal; i++) {
+        const botonPagina = document.createElement("BUTTON");
+        botonPagina.textContent = i;
+        botonPagina.dataset.accion = "page";
+        botonPagina.dataset.pagina = i;
+        botonPagina.dataset.tag = tag;
+        botonPagina.classList.add("boton_paginacion");
+        // marca la página actual
+        if (i == numPag) {
+            botonPagina.disabled = true;
+            botonPagina.id = "actual";
+            botonPagina.style.backgroundColor ="blue";
+            botonPagina.style.color ="white";
+        }
+        fragment.append(botonPagina);
+    }
+    
+    
+    const botonAvanzar = document.createElement("BUTTON");
+    botonAvanzar.textContent = "🡺"
+    botonAvanzar.dataset.accion = "avanzar";
+    botonAvanzar.dataset.pagina = numPag;
+    botonAvanzar.dataset.tag = tag;
+    if (numPag === cantidadPaginas) botonAvanzar.disabled = true; // controlar numero de pagina
+    botonAvanzar.classList.add("boton_paginacion");
+    fragment.append(botonAvanzar);
 
-    const botonActual = document.createElement("BUTTON");
-    botonActual.textContent = numPag;
-    botonActual.id = "actual";
-    botonActual.classList = "boton_paginacion";
-    botonActual.disabled = true;
-
-    fragment.append(botonRetroceder, botonActual, botonAvanzar);
     paginacion.append(fragment);
 }
 
