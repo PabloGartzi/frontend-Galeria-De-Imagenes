@@ -5,6 +5,10 @@
     -webkit-box-sizing: border-box;
     -moz-box-sizing: border-box;
 }
+body{
+    background: #2A7B9B;
+    background: linear-gradient(90deg, rgba(42, 123, 155, 1) 0%, rgba(147, 199, 87, 1) 33%, rgba(230, 219, 83, 1) 85%, rgba(237, 221, 83, 1) 100%);
+}
 main{
     margin-bottom: 75px;
 }
@@ -22,9 +26,7 @@ main{
     display: flex;
     align-items: center;
     justify-content: space-around;
-    flex-wrap: wrap;
-}
-a {
+    flex-wrap: wrap;    
     text-decoration: none;
     color: white;
 }
