@@ -5,6 +5,9 @@
     -webkit-box-sizing: border-box;
     -moz-box-sizing: border-box;
 }
+main{
+    margin-bottom: 75px;
+}
 .menu{ 
     position: sticky; /* POSICION STICKY */
     top: 0;
@@ -98,6 +101,13 @@ main section select{
     padding: 1rem;
     z-index: 1000;
 }
+
+/* 
+< ===================================================== >
+                        500px
+< ===================================================== >
+*/
+
 @media screen and (min-width: 500px) {
     .contenedor-imagenes {
         grid-template-columns: repeat(2, 1fr);
@@ -133,7 +143,7 @@ main section select{
 */
 
 @media screen and (min-width:992px) {
-    
+
 }/*992px*/
 
 /* 
@@ -143,5 +153,8 @@ main section select{
 */
 
 @media screen and (min-width:1200px) {
-    
+    .contenedor-imagenes figure img {
+        width: 90%;
+        height: 450px;
+    }
 }/*1200px*/
