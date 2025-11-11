@@ -149,7 +149,7 @@ const connect = async (urlAp) => {
 //cambiar para que el query cambie por un parametro dependiendo de la funcion
 const buscadorFotosPalabra = async (tag, numPag) => {
     try {
-        const datos = await connect(`${urlApi}search?query=${tag}&orientation=${selector.value}&page=${numPag}&per_page=9`)
+        const datos = await connect(`${urlApi}search?query=${tag}&orientation=${selector.value}&page=${numPag}&per_page=21`)
         console.log(datos);
         const fotos = datos.photos
         console.log(fotos)
