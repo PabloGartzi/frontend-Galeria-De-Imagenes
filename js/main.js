@@ -5,6 +5,7 @@ const paginaActual = window.location.pathname;
 const palabraBuscador = document.querySelector('#buscador');
 const contenedor_imagenes = document.querySelector('.contenedor-imagenes');
 const paginacion = document.querySelector(".Paginacion");
+const selector = document.querySelector('.selectPosicion');
 
 
 const client = 'RQWQAsp0OfX6ei1TGzj7LPE2NronT34Begtc9VizPvO1kY3v9C7IUD2d';
@@ -20,16 +21,17 @@ document.addEventListener('click', async (ev) => {
             let params = `scrollbars=no,resizable=no,status=no,location=no,toolbar=no,menubar=no,
             width=600,height=300,left=100,top=100`;
             window.open(ev.target.src, "test", params);
-        }
-        
+        } 
     }
     if (ev.target.matches('#buscarBtn')){
+        selector.value = "Original";
         const palabra = palabraBuscador.value.trim(); //usar para eliminar espacios en blanco al inicio y al final del string
         const listaFotos = await buscadorFotosPalabra(palabra, 1);
         pintarImagenesBuscar(listaFotos);
         await funcionPaginacion(palabra, 1);
     }
     if (ev.target.matches('.btnFavorito')) {
+        selector.value = "Original";
         const foto = JSON.parse(ev.target.dataset.foto);
         guardarFavorito(foto);
         ev.target.disabled = true;
@@ -52,6 +54,7 @@ document.addEventListener('click', async (ev) => {
         const listaFotos = await buscadorFotosPalabra(tag, 1);
         pintarImagenesBuscar(listaFotos);
         await funcionPaginacion(tag, 1);
+        selector.value = "Original";
     }
     if (ev.target.matches('.boton_paginacion')){
         const accion = ev.target.dataset.accion;
@@ -63,6 +66,7 @@ document.addEventListener('click', async (ev) => {
                 const listaFotos = await buscadorFotosPalabra(tag, pagina+1);
                 pintarImagenesBuscar(listaFotos);
                 await funcionPaginacion(tag, pagina+1);
+                selector.value = "Original";
             }
             else{
                 console.log("No puedes avanzar más")
@@ -74,6 +78,7 @@ document.addEventListener('click', async (ev) => {
                 const listaFotos = await buscadorFotosPalabra(tag, pagina-1);
                 pintarImagenesBuscar(listaFotos);
                 await funcionPaginacion(tag, pagina-1);
+                selector.value = "Original";
             }
             else{
                 console.log("No puedes retroceder más")
@@ -84,14 +89,52 @@ document.addEventListener('click', async (ev) => {
                 const listaFotos = await buscadorFotosPalabra(tag, pagina);
                 pintarImagenesBuscar(listaFotos);
                 await funcionPaginacion(tag, pagina);
+                selector.value = "Original";
             }
         }        
         else{
-            console.log("ALGO ESTÁ MAL HECHO.")
+            console.log("ALGO ESTÁ MAL HECHO. (PAGINACIÓN)")
         }
     }
 
 });
+
+selector.addEventListener("change", function() {
+    // Obtenemos todas las fotos en la pantalla
+    const fotos = document.querySelectorAll(".contenedor-imagenes figure img");
+
+    fotos.forEach(img => {
+        //obtenemos el enlace a la foto porque estaba guardado en el boton de favoritos
+        const foto = JSON.parse(img.closest("figure").querySelector(".btnFavorito")?.dataset.foto || "{}");
+
+        const fotoInic = JSON.parse(img.closest("figure").querySelector(".tag")?.dataset.foto_inicio || "{}");
+        //console.log(foto)
+
+        if (foto.src){
+            if (selector.value == "Original") {
+                img.src = foto.src.original;
+            } 
+            else if (selector.value == "Vertical") {
+                img.src = foto.src.portrait;
+            } 
+            else if (selector.value == "Horizontal") {
+                img.src = foto.src.landscape;
+            } 
+        }
+        else if(fotoInic.src){
+            if (selector.value == "Original") {
+                img.src = fotoInic.src.original;
+            } 
+            else if (selector.value == "Vertical") {
+                img.src = fotoInic.src.portrait;
+            } 
+            else if (selector.value == "Horizontal") {
+                img.src = fotoInic.src.landscape;
+            } 
+        }
+    });
+});
+
 
 
 /*FUNCIONES*/
@@ -207,7 +250,8 @@ const eliminarFavorito = (foto) => {
 
 const pintarImagenesFavorito = () =>{
     const favoritos = JSON.parse(localStorage.getItem('favoritos')) || [];
-    pintarImagenesBuscar(favoritos);
+    currentPhotos = favoritos;
+    pintarImagenesBuscar(favoritos, "Normal");
 }
 
 
@@ -236,6 +280,8 @@ const pintarTagsInicio = (listaFotos, listaTags) =>{
 
         const newFigcaption = document.createElement("FIGCAPTION");
         newFigcaption.textContent = listaTags[listaFotos.indexOf(element)];
+        newFigcaption.dataset.foto_inicio = JSON.stringify(element);
+        newFigcaption.classList.add("tag");
         
         
         newFigure.append(newImg, newFigcaption);
@@ -302,11 +348,13 @@ const eliminarElementosDOM = (elemento) => {
 //getimgprueba();
 
 if (paginaActual.includes("index.html")) {
+    selector.value = "Original";
     buscarTagsInicio();
 }
 
 
 if (paginaActual.includes("favoritos.html")) {
+    selector.value = "Original";
     pintarImagenesFavorito();
 }
 
