@@ -21,7 +21,6 @@ const urlApi = `https://api.pexels.com/v1/`
 const fragment = document.createDocumentFragment();
 
 /* EVENTOS*/
-
 document.addEventListener('click', async (ev) => {
     if (paginaActual.includes("favoritos.html")) {
         if (ev.target.matches('.imagen') && popup.childElementCount === 0) {
@@ -37,8 +36,7 @@ document.addEventListener('click', async (ev) => {
     }
     if (ev.target.matches('#buscarBtn')){
         const palabra = palabraBuscador.value.trim(); //usar para eliminar espacios en blanco al inicio y al final del string
-        const palabraValidada = validaPalabra(palabra);
-        console.log(palabraValidada);        
+        const palabraValidada = validaPalabra(palabra);       
         if (palabraValidada === null) {
             pintarNoEncontrado();
             return;
@@ -152,6 +150,12 @@ document.addEventListener("change", async (ev) => {
 })
 
 /*FUNCIONES*/
+/**
+ * Esta funcion valida que la palabra ingresada en el input del buscador
+ * cumpla con los parametros establecidos (solo letras, numeros y espacios)
+ * @param {string} palabra 
+ * @returns 
+ */
 const validaPalabra = (palabra) => {
     let valido = true;
     let regExp = new RegExp(/^[a-zA-ZñÑáéíóúüÁÉÍÓÚÜ0-9 ]*$/);
@@ -167,6 +171,12 @@ const validaPalabra = (palabra) => {
         return palabra;
     }
 }
+/**
+ * Esta funcion realiza una conexion a la API
+ * @async
+ * @param {string} urlAp 
+ * @returns 
+ */
 const connect = async (urlAp) => {
     try {
         const resp = await fetch(urlAp, {
@@ -185,14 +195,18 @@ const connect = async (urlAp) => {
         throw (error + 'no encontramos nada')
     }
 }
-//cambiar para que el query cambie por un parametro dependiendo de la funcion
+/**
+ * Esta funcion busca fotos en la API
+ * @async
+ * @param {string} tag 
+ * @param {number} numPag 
+ * @returns 
+ */
 const buscadorFotosPalabra = async (tag, numPag) => {
     try {
         cargando(true);
         const datos = await connect(`${urlApi}search?query=${tag}&orientation=${selector.value}&page=${numPag}&per_page=21`)
-        console.log(datos);
         const fotos = datos.photos
-        console.log(fotos)
         return fotos;
     } catch (error) {
     }
@@ -200,6 +214,12 @@ const buscadorFotosPalabra = async (tag, numPag) => {
         cargando(false);
     }
 }
+/**
+ * funcion que calcula la cantidad de fotos que hay en la busqueda
+ * @async
+ * @param {string} tag 
+ * @returns 
+ */
 const cantidadFotos = async (tag) => {
     try {
         const datos = await connect(`${urlApi}search?query=${tag}&orientation=${selector.value}&page=1&per_page=21`)
@@ -207,7 +227,10 @@ const cantidadFotos = async (tag) => {
     } catch (error) {
     }
 }
-//Funcion para pintar las imagenes que se han buscado haciendo uso del input del html
+/**
+ * function para pintar las imagenes que se han buscado con la funcion de buscarFotosPalabra
+ * @param {Array<Object>} listaFotos 
+ */
 const pintarImagenesBuscar = (listaFotos) => {
     eliminarElementosDOM(contenedor_imagenes);
 
@@ -253,6 +276,10 @@ const pintarImagenesBuscar = (listaFotos) => {
     
     contenedor_imagenes.append(fragment);
 }
+/**
+ * Funcion para guardar en localStorage las fotos favoritas
+ * @param {Object} foto 
+ */
 const guardarFavorito = (foto) => {
     const favoritos = JSON.parse(localStorage.getItem('favoritos')) || [];
     const existeFavorito = favoritos.findIndex(fotoLista => fotoLista.id === foto.id);
@@ -264,6 +291,10 @@ const guardarFavorito = (foto) => {
         console.log("Ya está en favoritos");
     }
 }
+/**
+ * Funcion para eliminar fotos de favoritos y del localStorage
+ * @param {Object} foto 
+ */
 const eliminarFavorito = (foto) => {
     const favoritos = JSON.parse(localStorage.getItem('favoritos')) || [];
     const existeFavorito = favoritos.findIndex(fotoLista => fotoLista.id === foto.id);
@@ -275,11 +306,18 @@ const eliminarFavorito = (foto) => {
         localStorage.setItem('favoritos', JSON.stringify(favoritos));
     }
 }
+/**
+ * Funcion para pintar las imagenes que traemos del local storage a favoritos
+ */
 const pintarImagenesFavorito = () =>{
     const favoritos = JSON.parse(localStorage.getItem('favoritos')) || [];
     currentPhotos = favoritos;
     pintarImagenesBuscar(favoritos, "Normal");
 }
+/**
+ * Funcion para pintar los tags en el inicio
+ * @async
+ */
 const buscarTagsInicio = async () => {
     let listaFotos = []
     let listaTags = ["Plantas","Comidas","Ciudades"]
@@ -290,13 +328,15 @@ const buscarTagsInicio = async () => {
     listaFotos.push(listaFoto1[0],listaFoto2[0],listaFoto3[0])
     pintarTagsInicio(listaFotos, listaTags);
 }
+/**
+ * funcion que pinta los tags en el inicio
+ * @param {Array<Object>} listaFotos 
+ * @param {Array<string>} listaTags 
+ */
 const pintarTagsInicio = (listaFotos, listaTags) =>{
-    //eliminarElementosDOM(contenedor_imagenes);
     eliminarElementosDOM(indice);
-
     listaFotos.forEach(element => {
         const newFigure = document.createElement("FIGURE");
-
         const newImg = document.createElement("IMG");
         newImg.src = element.src.original;
         newImg.alt = element.alt;
@@ -307,20 +347,22 @@ const pintarTagsInicio = (listaFotos, listaTags) =>{
         newFigcaption.textContent = listaTags[listaFotos.indexOf(element)];
         newFigcaption.dataset.foto_inicio = JSON.stringify(element);
         newFigcaption.id = listaTags[listaFotos.indexOf(element)];
-        
-        
+
         newFigure.append(newImg, newFigcaption);
         fragment.append(newFigure);
     });
     indice.append(fragment);
 }
+/**
+ * funcion de paginacion 
+ * creamos las paginacion dinamicamente
+ * @async
+ * @param {string} tag 
+ * @param {number} numPag 
+ */
 const funcionPaginacion = async (tag, numPag) => {
     eliminarElementosDOM(paginacion);
-    
     const cantidadPaginas = await cantidadFotos(tag);
-    //const numeroUltimaPagina = Math.max(1, cantidadPaginas);
-    
-    //const indiceBloquePaginas = Math.floor((numPag - 1) / 10);
     const pagInicio = Math.max(numPag -5, 1);
     const pagFinal = Math.min(numPag + 5, cantidadPaginas);
 
@@ -349,7 +391,7 @@ const funcionPaginacion = async (tag, numPag) => {
         botonPagina.dataset.pagina = i;
         botonPagina.dataset.tag = tag;
         botonPagina.classList.add("boton_paginacion");
-        // marca la página actual
+
         if (i == numPag) {
             botonPagina.disabled = true;
             botonPagina.id = "actual";
@@ -365,7 +407,7 @@ const funcionPaginacion = async (tag, numPag) => {
     botonAvanzar.dataset.accion = "avanzar";
     botonAvanzar.dataset.pagina = numPag;
     botonAvanzar.dataset.tag = tag;
-    if (numPag == cantidadPaginas) botonAvanzar.disabled = true; // controlar numero de pagina
+    if (numPag == cantidadPaginas) botonAvanzar.disabled = true;
     botonAvanzar.classList.add("boton_paginacion");
     fragment.append(botonAvanzar);
 
@@ -374,12 +416,17 @@ const funcionPaginacion = async (tag, numPag) => {
     mMax.dataset.accion = "final";
     mMax.dataset.pagina = numPag;
     mMax.dataset.tag = tag;
-    if (numPag == cantidadPaginas) mMax.disabled = true; // controlar numero de pagina
+    if (numPag == cantidadPaginas) mMax.disabled = true;
     mMax.classList.add("boton_paginacion");
     fragment.append(mMax);
 
     paginacion.append(fragment);
 }
+/**
+ * funcion que abre el popup en favoritos
+ * @param {string} src 
+ * @param {string} descripcion 
+ */
 const abrirPopupFavoritos = (src, descripcion) => {
     popup.style.display = 'none';
     popup.style.position = 'fixed';
@@ -404,10 +451,17 @@ const abrirPopupFavoritos = (src, descripcion) => {
     popup.append(contornoPopup);
     popup.style.display = 'flex';
 }
+/**
+ * funcion para cerrar el popup de favoritos
+ */
 const cerrarPopupFavoritos =() => {
     popup.style.display = 'none';
     eliminarElementosDOM(popup);
 }
+/**
+ * funcion para eliminar elementos del DOM
+ * @param {HTMLElement} elemento 
+ */
 const eliminarElementosDOM = (elemento) => {
     elemento.innerHTML = "";
 }
@@ -418,6 +472,10 @@ const pintarNoEncontrado = () => {
     mensaje.classList.add("error");
     contenedor_imagenes.append(mensaje);
 }
+/**
+ * funcion para mostrar y ocultar el preloader
+ * @param {boolean} mostrar 
+ */
 const cargando = (mostrar = false) => {
     if (mostrar) {
         preloader.classList.remove('mostrar');
