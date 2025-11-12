@@ -8,6 +8,7 @@ const indice = document.querySelector('.indice');
 const paginacion = document.querySelector(".Paginacion");
 const selector = document.querySelector('.selectPosicion');
 const popup = document.querySelector('#popup');
+const preloader = document.querySelector('#preloader');
 
 let modoActual = "inicio";
 let ultimoTag = "";
@@ -22,15 +23,15 @@ const fragment = document.createDocumentFragment();
 /* EVENTOS*/
 
 document.addEventListener('click', async (ev) => {
-    if (ev.target.matches('.imagen') && popup.childElementCount === 0) {
-        if (paginaActual.includes("favoritos.html")) {
+    if (paginaActual.includes("favoritos.html")) {
+        if (ev.target.matches('.imagen') && popup.childElementCount === 0) {
             const src = ev.target.src;
             const desc = ev.target.alt;
             abrirPopupFavoritos(src, desc);
         }
     }
-    if (ev.target.matches("#cerrar-popup")){
-        if (paginaActual.includes("favoritos.html")) {
+    if (paginaActual.includes("favoritos.html")) {
+        if (ev.target.matches("#cerrar-popup")){
             cerrarPopupFavoritos();
         }
     }
@@ -137,8 +138,7 @@ document.addEventListener('click', async (ev) => {
         ultimaPagina = pagina;
     }
 
-});
-
+})
 document.addEventListener("change", async (ev) => {
     if (modoActual == "inicio") {
         buscarTagsInicio();
@@ -166,8 +166,7 @@ const validaPalabra = (palabra) => {
     if(valido == true){
         return palabra;
     }
-};
-
+}
 const connect = async (urlAp) => {
     try {
         const resp = await fetch(urlAp, {
@@ -186,10 +185,10 @@ const connect = async (urlAp) => {
         throw (error + 'no encontramos nada')
     }
 }
-
 //cambiar para que el query cambie por un parametro dependiendo de la funcion
 const buscadorFotosPalabra = async (tag, numPag) => {
     try {
+        cargando(true);
         const datos = await connect(`${urlApi}search?query=${tag}&orientation=${selector.value}&page=${numPag}&per_page=21`)
         console.log(datos);
         const fotos = datos.photos
@@ -197,8 +196,10 @@ const buscadorFotosPalabra = async (tag, numPag) => {
         return fotos;
     } catch (error) {
     }
+    finally{
+        cargando(false);
+    }
 }
-
 const cantidadFotos = async (tag) => {
     try {
         const datos = await connect(`${urlApi}search?query=${tag}&orientation=${selector.value}&page=1&per_page=21`)
@@ -206,8 +207,6 @@ const cantidadFotos = async (tag) => {
     } catch (error) {
     }
 }
-
-
 //Funcion para pintar las imagenes que se han buscado haciendo uso del input del html
 const pintarImagenesBuscar = (listaFotos) => {
     eliminarElementosDOM(contenedor_imagenes);
@@ -254,7 +253,6 @@ const pintarImagenesBuscar = (listaFotos) => {
     
     contenedor_imagenes.append(fragment);
 }
-
 const guardarFavorito = (foto) => {
     const favoritos = JSON.parse(localStorage.getItem('favoritos')) || [];
     const existeFavorito = favoritos.findIndex(fotoLista => fotoLista.id === foto.id);
@@ -266,7 +264,6 @@ const guardarFavorito = (foto) => {
         console.log("Ya está en favoritos");
     }
 }
-
 const eliminarFavorito = (foto) => {
     const favoritos = JSON.parse(localStorage.getItem('favoritos')) || [];
     const existeFavorito = favoritos.findIndex(fotoLista => fotoLista.id === foto.id);
@@ -278,14 +275,11 @@ const eliminarFavorito = (foto) => {
         localStorage.setItem('favoritos', JSON.stringify(favoritos));
     }
 }
-
 const pintarImagenesFavorito = () =>{
     const favoritos = JSON.parse(localStorage.getItem('favoritos')) || [];
     currentPhotos = favoritos;
     pintarImagenesBuscar(favoritos, "Normal");
 }
-
-
 const buscarTagsInicio = async () => {
     let listaFotos = []
     let listaTags = ["Plantas","Comidas","Ciudades"]
@@ -296,7 +290,6 @@ const buscarTagsInicio = async () => {
     listaFotos.push(listaFoto1[0],listaFoto2[0],listaFoto3[0])
     pintarTagsInicio(listaFotos, listaTags);
 }
-
 const pintarTagsInicio = (listaFotos, listaTags) =>{
     //eliminarElementosDOM(contenedor_imagenes);
     eliminarElementosDOM(indice);
@@ -321,7 +314,6 @@ const pintarTagsInicio = (listaFotos, listaTags) =>{
     });
     indice.append(fragment);
 }
-
 const funcionPaginacion = async (tag, numPag) => {
     eliminarElementosDOM(paginacion);
     
@@ -388,7 +380,6 @@ const funcionPaginacion = async (tag, numPag) => {
 
     paginacion.append(fragment);
 }
-
 const abrirPopupFavoritos = (src, descripcion) => {
     popup.style.display = 'none';
     popup.style.position = 'fixed';
@@ -413,12 +404,10 @@ const abrirPopupFavoritos = (src, descripcion) => {
     popup.append(contornoPopup);
     popup.style.display = 'flex';
 }
-
 const cerrarPopupFavoritos =() => {
     popup.style.display = 'none';
     eliminarElementosDOM(popup);
 }
-
 const eliminarElementosDOM = (elemento) => {
     elemento.innerHTML = "";
 }
@@ -429,16 +418,23 @@ const pintarNoEncontrado = () => {
     mensaje.classList.add("error");
     contenedor_imagenes.append(mensaje);
 }
+const cargando = (mostrar = false) => {
+    if (mostrar) {
+        preloader.classList.remove('mostrar');
+    } else {
+        preloader.classList.add('mostrar');
+    }
+}
 
 /*INVOCACIONES*/
-//getimgprueba();
 
 if (paginaActual.includes("index.html")) {
     buscarTagsInicio();
 }
-
-
 if (paginaActual.includes("favoritos.html")) {    
     pintarImagenesFavorito();
 }
+window.onload = () => {
+    buscadorFotosPalabra();
+};
 });
