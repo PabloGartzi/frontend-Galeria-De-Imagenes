@@ -35,13 +35,21 @@ document.addEventListener('click', async (ev) => {
     }
     if (ev.target.matches('#buscarBtn')){
         const palabra = palabraBuscador.value.trim(); //usar para eliminar espacios en blanco al inicio y al final del string
-        const listaFotos = await buscadorFotosPalabra(palabra, 1);
-        pintarImagenesBuscar(listaFotos);
-        await funcionPaginacion(palabra, 1);
-
-        modoActual = "busqueda";
-        ultimoTag = palabra;
-        ultimaPagina = 1;
+        const palabraValidada = validaPalabra(palabra);
+        console.log(palabraValidada);        
+        if (palabraValidada === null) {
+            pintarNoEncontrado();
+            return;
+        }
+        const listaFotos = await buscadorFotosPalabra(palabraValidada, 1);
+        //si existe listaFotos entra
+        if (listaFotos) {
+            pintarImagenesBuscar(listaFotos);
+            await funcionPaginacion(palabra, 1);
+            modoActual = "busqueda";
+            ultimoTag = palabra;
+            ultimaPagina = 1;
+        }
     }
     if (ev.target.matches('.btnFavorito')) {
         const foto = JSON.parse(ev.target.dataset.foto);
@@ -127,6 +135,22 @@ document.addEventListener("change", async (ev) => {
 })
 
 /*FUNCIONES*/
+const validaPalabra = (palabra) => {
+    let valido = true;
+    let regExp = new RegExp(/^[a-zA-ZñÑáéíóúüÁÉÍÓÚÜ0-9 ]*$/);
+    let validando = regExp.test(palabra);
+    if(palabra == ""){
+        console.log("Esto esta vacio >:c");
+        return null;
+    }else if(validando == false){
+        console.log("Esto no cumple los parametros");
+        return null;
+    }
+    if(valido == true){
+        return palabra;
+    }
+};
+
 const connect = async (urlAp) => {
     try {
         const resp = await fetch(urlAp, {
@@ -361,6 +385,13 @@ const cerrarPopupFavoritos =() => {
 
 const eliminarElementosDOM = (elemento) => {
     elemento.innerHTML = "";
+}
+const pintarNoEncontrado = () => {
+    eliminarElementosDOM(contenedor_imagenes);
+    const mensaje = document.createElement("p");
+    mensaje.textContent = "NO CUMPLE CON LOS PARAMETROS";
+    mensaje.classList.add("error");
+    contenedor_imagenes.append(mensaje);
 }
 
 /*INVOCACIONES*/

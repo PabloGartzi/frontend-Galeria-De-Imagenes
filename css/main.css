@@ -88,6 +88,12 @@ main section select:focus{
     outline: none;
     box-shadow: 0 0 20px rgba(81, 203, 238, 1);
 }
+.error{
+    text-align: center;
+    font-size: 2rem;
+    color: red;
+    margin-top: 5rem;
+}
 
 
 /* Estilos para las imagenes que tengan una transicion al cambiar de tamaños */
