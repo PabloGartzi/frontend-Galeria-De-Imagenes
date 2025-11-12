@@ -492,7 +492,5 @@ if (paginaActual.includes("index.html")) {
 if (paginaActual.includes("favoritos.html")) {    
     pintarImagenesFavorito();
 }
-window.onload = () => {
-    buscadorFotosPalabra();
-};
+
 });
