@@ -1,4 +1,4 @@
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
 /* VARIABLES*/
 const paginaActual = window.location.pathname;
 
@@ -487,7 +487,7 @@ const cargando = (mostrar = false) => {
 /*INVOCACIONES*/
 
 if (paginaActual.includes("index.html") || paginaActual === "/") {
-    buscarTagsInicio();
+    await buscarTagsInicio();
 }
 if (paginaActual.includes("favoritos.html")) {    
     pintarImagenesFavorito();
