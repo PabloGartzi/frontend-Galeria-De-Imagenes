@@ -486,7 +486,7 @@ const cargando = (mostrar = false) => {
 
 /*INVOCACIONES*/
 
-if (paginaActual.includes("index.html")) {
+if (paginaActual.includes("index.html") || paginaActual === "/") {
     buscarTagsInicio();
 }
 if (paginaActual.includes("favoritos.html")) {    
