@@ -4,6 +4,7 @@ const paginaActual = window.location.pathname;
 
 const palabraBuscador = document.querySelector('#buscador');
 const contenedor_imagenes = document.querySelector('.contenedor-imagenes');
+const indice = document.querySelector('.indice');
 const paginacion = document.querySelector(".Paginacion");
 const selector = document.querySelector('.selectPosicion');
 const popup = document.querySelector('#popup');
@@ -87,21 +88,20 @@ document.addEventListener('click', async (ev) => {
         if(accion == "avanzar"){
             if(pagina < numPagMax){
                 const listaFotos = await buscadorFotosPalabra(tag, pagina+1);
+                buscarTagsInicio();
                 pintarImagenesBuscar(listaFotos);
-                await funcionPaginacion(tag, pagina+1);
-                
+                await funcionPaginacion(tag, pagina+1);     
             }
             else{
                 console.log("No puedes avanzar más")
-            }
-            
+            }  
         }
         else if(accion == "retroceder"){
             if(pagina > 1){
                 const listaFotos = await buscadorFotosPalabra(tag, pagina-1);
+                buscarTagsInicio();
                 pintarImagenesBuscar(listaFotos);
                 await funcionPaginacion(tag, pagina-1);
-                
             }
             else{
                 console.log("No puedes retroceder más")
@@ -110,9 +110,25 @@ document.addEventListener('click', async (ev) => {
         else if (accion == "page") {
             if (pagina >= 1 && pagina <= numPagMax) {
                 const listaFotos = await buscadorFotosPalabra(tag, pagina);
+                buscarTagsInicio();
                 pintarImagenesBuscar(listaFotos);
-                await funcionPaginacion(tag, pagina);
-                
+                await funcionPaginacion(tag, pagina);      
+            }
+        }        
+        else if (accion == "inicio") {
+            if (pagina >= 1 && pagina <= numPagMax) {
+                const listaFotos = await buscadorFotosPalabra(tag, 1);
+                buscarTagsInicio();
+                pintarImagenesBuscar(listaFotos);
+                await funcionPaginacion(tag, 1);      
+            }
+        }        
+        else if (accion == "final") {
+            if (pagina >= 1 && pagina <= numPagMax) {
+                const listaFotos = await buscadorFotosPalabra(tag, numPagMax);
+                buscarTagsInicio();
+                pintarImagenesBuscar(listaFotos);
+                await funcionPaginacion(tag, numPagMax);      
             }
         }        
         else{
@@ -128,6 +144,7 @@ document.addEventListener("change", async (ev) => {
         buscarTagsInicio();
     } 
     else {
+        buscarTagsInicio();
         const listaFotos = await buscadorFotosPalabra(ultimoTag, 1);
         pintarImagenesBuscar(listaFotos);
         await funcionPaginacion(ultimoTag, 1);
@@ -184,7 +201,7 @@ const buscadorFotosPalabra = async (tag, numPag) => {
 
 const cantidadFotos = async (tag) => {
     try {
-        const datos = await connect(`${urlApi}search?query=${tag}&page=1&per_page=9`)
+        const datos = await connect(`${urlApi}search?query=${tag}&orientation=${selector.value}&page=1&per_page=21`)
         return Math.ceil(datos.total_results/datos.per_page);
     } catch (error) {
     }
@@ -281,7 +298,8 @@ const buscarTagsInicio = async () => {
 }
 
 const pintarTagsInicio = (listaFotos, listaTags) =>{
-    eliminarElementosDOM(contenedor_imagenes);
+    //eliminarElementosDOM(contenedor_imagenes);
+    eliminarElementosDOM(indice);
 
     listaFotos.forEach(element => {
         const newFigure = document.createElement("FIGURE");
@@ -301,7 +319,7 @@ const pintarTagsInicio = (listaFotos, listaTags) =>{
         newFigure.append(newImg, newFigcaption);
         fragment.append(newFigure);
     });
-    contenedor_imagenes.append(fragment);
+    indice.append(fragment);
 }
 
 const funcionPaginacion = async (tag, numPag) => {
@@ -310,19 +328,27 @@ const funcionPaginacion = async (tag, numPag) => {
     const cantidadPaginas = await cantidadFotos(tag);
     //const numeroUltimaPagina = Math.max(1, cantidadPaginas);
     
-    const indiceBloquePaginas = Math.floor((numPag - 1) / 10);
-    const pagInicio = indiceBloquePaginas * 10 + 1;
-    const pagFinal = Math.min(pagInicio + 9, cantidadPaginas);
+    //const indiceBloquePaginas = Math.floor((numPag - 1) / 10);
+    const pagInicio = Math.max(numPag -5, 1);
+    const pagFinal = Math.min(numPag + 5, cantidadPaginas);
 
+    const mMin = document.createElement("BUTTON");
+    mMin.textContent = "🡸🡸"
+    mMin.classList.add("boton_paginacion");
+    mMin.dataset.accion = "inicio";
+    mMin.dataset.pagina = numPag;
+    mMin.dataset.tag = tag;
+    if (numPag == 1) mMin.disabled = true;
+    fragment.append(mMin);
+    
     const botonRetroceder = document.createElement("BUTTON");
     botonRetroceder.textContent = "🡸"
     botonRetroceder.classList.add("boton_paginacion");
     botonRetroceder.dataset.accion = "retroceder";
     botonRetroceder.dataset.pagina = numPag;
     botonRetroceder.dataset.tag = tag;
-    if (numPag == 1) botonRetroceder.disabled = true;// controlar numero de pagina
+    if (numPag == 1) botonRetroceder.disabled = true;
     fragment.append(botonRetroceder);
-    
     
     for (let i = pagInicio; i <= pagFinal; i++) {
         const botonPagina = document.createElement("BUTTON");
@@ -347,15 +373,25 @@ const funcionPaginacion = async (tag, numPag) => {
     botonAvanzar.dataset.accion = "avanzar";
     botonAvanzar.dataset.pagina = numPag;
     botonAvanzar.dataset.tag = tag;
-    if (numPag === cantidadPaginas) botonAvanzar.disabled = true; // controlar numero de pagina
+    if (numPag == cantidadPaginas) botonAvanzar.disabled = true; // controlar numero de pagina
     botonAvanzar.classList.add("boton_paginacion");
     fragment.append(botonAvanzar);
+
+    const mMax = document.createElement("BUTTON");
+    mMax.textContent = "🡺🡺"
+    mMax.dataset.accion = "final";
+    mMax.dataset.pagina = numPag;
+    mMax.dataset.tag = tag;
+    if (numPag == cantidadPaginas) mMax.disabled = true; // controlar numero de pagina
+    mMax.classList.add("boton_paginacion");
+    fragment.append(mMax);
 
     paginacion.append(fragment);
 }
 
 const abrirPopupFavoritos = (src, descripcion) => {
     popup.style.display = 'none';
+    popup.style.position = 'fixed';
 
     const contornoPopup = document.createElement('div');
     contornoPopup.classList.add('contorno');
